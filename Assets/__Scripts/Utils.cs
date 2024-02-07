@@ -92,6 +92,20 @@ public class Utils : MonoBehaviour {
 		_camBounds.Encapsulate( boundTLN );
 		_camBounds.Encapsulate( boundBRF );
 	}
+
+	public static GameObject FindChildGOByName(string name, GameObject parent)
+	{
+		Transform[] trans = parent.GetComponentsInChildren<Transform>();
+		foreach(Transform tran in trans)
+		{
+			if (tran.gameObject.name == name)
+			{
+				return tran.gameObject;
+			}
+		}
+
+		return null;
+	}
 	
 	
 	

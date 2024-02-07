@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -280,5 +279,21 @@ public class Deck : MonoBehaviour
         card.back = _tGO;
 
         card.faceUp = startFaceUp;
+    }
+
+    static public void Shuffle(ref List<Card> oCards)
+    {
+        List<Card> tCards = new List<Card>();
+
+        int ndx;
+        tCards = new List<Card>();
+        while (oCards.Count > 0)
+        {
+            ndx = Random.Range(0, oCards.Count);
+            tCards.Add(oCards[ndx]);
+            oCards.RemoveAt(ndx);
+        }
+
+        oCards = tCards;
     }
 }
