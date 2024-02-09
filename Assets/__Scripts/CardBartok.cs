@@ -18,7 +18,7 @@ public enum CBState
 }
 public class CardBartok : Card
 {
-    static public float MOVE_DURATION;
+    static public float MOVE_DURATION = 1f;
     static public string MOVE_EASING = Easing.InOut;
     static public float CARD_HEIGHT = 3.5f;
     static public float CARD_WIDTH = 2f;
@@ -28,7 +28,9 @@ public class CardBartok : Card
 
     public List<Vector3> bezierPts;
     public List<Quaternion> bezierRots;
-    public float timeStart, timeDuration;
+    public float timeStart = 0, timeDuration = 3f;
+    public int eventualSortOrder;
+    public string eventualSortLayer;
 
     public GameObject reportFinishTo = null;
 
@@ -95,6 +97,19 @@ public class CardBartok : Card
                     transform.localPosition = pos;
                     Quaternion rotQ = Utils.Bezier(uC, bezierRots);
                     transform.rotation = rotQ;
+
+                    if (u > 0.5f)
+                    {
+                        SpriteRenderer sRend = spriteRenderers[0];
+                        if (sRend.sortingOrder != eventualSortOrder)
+                        {
+                            SetSortOrder(eventualSortOrder);
+                        }
+                        if (sRend.sortingLayerName != eventualSortLayer)
+                        {
+                            SetSortingLayerName(eventualSortLayer);
+                        }
+                    }
                 }
                 break;
         }
