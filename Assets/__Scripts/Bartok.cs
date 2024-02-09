@@ -1,16 +1,20 @@
 using BartokGame;
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using TMPro.EditorUtilities;
-using Unity.VisualScripting;
-using UnityEditor.TextCore.Text;
 using UnityEngine;
-using UnityEngine.Tilemaps;
+
+public enum TurhPhase
+{
+    idle,
+    pre,
+    waiting,
+    post,
+    gameOver
+}
 
 public class Bartok : MonoBehaviour
 {
     static public Bartok S;
+    static public Player CURRENT_PLAYER;
 
     [Header("Set in inspector")]
     public TextAsset deckXML;
@@ -26,6 +30,7 @@ public class Bartok : MonoBehaviour
     public List<CardBartok> discardPile;
     public List<Player> players;
     public CardBartok targetCard;
+    public TurhPhase phase = TurhPhase.idle;
 
     private BartokLayout layout;
     private Transform layoutAnchor;
@@ -71,7 +76,7 @@ public class Bartok : MonoBehaviour
 
         Player pl;
         players = new List<Player>();
-        foreach(BartokGame.SlotDef tSD in layout.slotDefs)
+        foreach (BartokGame.SlotDef tSD in layout.slotDefs)
         {
             pl = new Player();
             pl.handSlotDef = tSD;
@@ -81,7 +86,7 @@ public class Bartok : MonoBehaviour
         players[0].type = PlayerType.human;
 
         CardBartok tCB;
-        for (int i = 0; i <numStartingCards; i++)
+        for (int i = 0; i < numStartingCards; i++)
         {
             for (int j = 0; j < 4; j++)
             {
@@ -111,14 +116,15 @@ public class Bartok : MonoBehaviour
 
     public void DrawFirstTarget()
     {
-        CardBartok tCB = MoveToTarget(Draw());
+        CardBartok card = MoveToTarget(Draw());
+        card.reportFinishTo = gameObject;
     }
 
     public CardBartok MoveToTarget(CardBartok card)
     {
         card.timeStart = 0;
         card.MoveTo(layout.discardPile.pos + Vector3.back);
-        card.state = CBState.target;
+        card.state = CBState.toTarget;
         card.faceUp = true;
 
         card.SetSortingLayerName("10");
@@ -127,6 +133,8 @@ public class Bartok : MonoBehaviour
         {
             MoveToDiscard(targetCard);
         }
+
+        targetCard = card;
 
         return card;
     }
@@ -142,30 +150,50 @@ public class Bartok : MonoBehaviour
         return card;
     }
 
+    public void CBCallback(CardBartok card)
+    {
+        Utils.tr("Bartok:Callback()", card.name);
+        StartGame();
+    }
+
+    public void StartGame()
+    {
+        print("Start game");
+        PassTurn(1);
+    }
+
+    public void PassTurn(int num = -1)
+    {
+        if (num == -1)
+        {
+            int ndx = players.IndexOf(CURRENT_PLAYER);
+            num = (ndx + 1) % 4;
+        }
+
+        int lastPlayerNum = -1;
+        if (CURRENT_PLAYER != null)
+        {
+            lastPlayerNum = CURRENT_PLAYER.playerNum;
+        }
+        CURRENT_PLAYER = players[num];
+        phase = TurhPhase.pre;
+
+        //CURRENT_PLAYER.TakeTurn();
+    }
+
+    public bool ValidPlay(CardBartok card)
+    {
+        if (card.rank == targetCard.rank) return true;
+
+        if (card.suit == targetCard.suit) return true;
+
+        return false;
+    }
+
     public CardBartok Draw()
     {
         CardBartok cb = drawPile[0];
         drawPile.RemoveAt(0);
         return cb;
-    }
-
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            players[0].AddCard(Draw());
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            players[1].AddCard(Draw());
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha3))
-        {
-            players[2].AddCard(Draw());
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha4))
-        {
-            players[3].AddCard(Draw());
-        }
     }
 }

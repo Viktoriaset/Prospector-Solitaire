@@ -88,6 +88,7 @@ public class CardBartok : Card
 
                     if (reportFinishTo != null)
                     {
+                        print("Card send message");
                         reportFinishTo.SendMessage("CBCallback", this);
                         reportFinishTo = null;
                     }
